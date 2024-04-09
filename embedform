@@ -1,110 +1,149 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TedTalk Embed Code Generator</title>
+  <title>TED Talk Embed Code Generator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
+      background-color: #f2f2f2;
     }
 
     form {
-      max-width: 400px;
+      max-width: 600px;
       margin: 0 auto;
-      background-color: #f2f2f2;
-      padding: 20px;
-      border-radius: 5px;
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
-    input[type=text] {
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    input[type="text"],
+    textarea {
       width: 100%;
       padding: 12px 20px;
-      margin: 8px 0;
+      margin-bottom: 20px;
       display: inline-block;
       border: 1px solid #ccc;
       border-radius: 4px;
       box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    textarea {
+      height: 150px;
+      font-family: monospace;
     }
 
     button {
       background-color: #4CAF50;
       color: white;
       padding: 14px 20px;
-      margin: 8px 0;
+      margin-top: 20px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      font-size: 16px;
       width: 100%;
     }
 
+    button:hover {
+      background-color: #45a049;
+    }
+
     #embedCode {
-      width: 100%;
-      height: 120px;
-      margin-top: 20px;
-      font-family: monospace;
-      font-size: 14px;
       background-color: #f2f2f2;
-      padding: 10px;
+      padding: 20px;
       border-radius: 4px;
+      font-size: 14px;
+      white-space: pre-wrap;
     }
   </style>
 </head>
 <body>
   <form onsubmit="generateEmbedCode(); return false;">
-    <label for="videoUrl">Video URL:</label>
-    <input type="text" id="videoUrl" name="videoUrl" placeholder="Enter video URL" required>
+    <label for="videoUrl">TED Talk URL:</label>
+    <input type="text" id="videoUrl" name="videoUrl" placeholder="Enter TED Talk URL" required>
 
     <label for="videoWidth">Video Width:</label>
-    <input type="text" id="videoWidth" name="videoWidth" placeholder="Enter video width" required>
+    <input type="text" id="videoWidth" name="videoWidth" value="640" readonly>
 
     <label for="videoHeight">Video Height:</label>
-    <input type="text" id="videoHeight" name="videoHeight" placeholder="Enter video height" required>
+    <input type="text" id="videoHeight" name="videoHeight" value="360" readonly>
 
-    <label for="videoStartTime">Start Time (seconds):</label>
-    <input type="text" id="videoStartTime" name="videoStartTime" placeholder="Enter start time" required>
-
-    <label for="videoLength">Length (seconds):</label>
-    <input type="text" id="videoLength" name="videoLength" placeholder="Enter video length" required>
+    <label for="videoLength">Video Length:</label>
+    <input type="text" id="videoLength" name="videoLength" readonly>
 
     <label for="videoTitle">Video Title:</label>
-    <input type="text" id="videoTitle" name="videoTitle" placeholder="Enter video title" required>
+    <input type="text" id="videoTitle" name="videoTitle" readonly>
+
+    <label for="videoAspectRatio">Aspect Ratio:</label>
+    <input type="text" id="videoAspectRatio" name="videoAspectRatio" readonly>
+
+    <label for="embedCode">Embed Code:</label>
+    <textarea id="embedCode" name="embedCode" readonly></textarea>
 
     <button type="submit">Generate Embed Code</button>
   </form>
 
-  <textarea id="embedCode" readonly></textarea>
-
   <script>
     function generateEmbedCode() {
       const videoUrl = document.getElementById('videoUrl').value;
-      const videoWidth = document.getElementById('videoWidth').value;
-      const videoHeight = document.getElementById('videoHeight').value;
-      const videoStartTime = document.getElementById('videoStartTime').value;
-      const videoLength = document.getElementById('videoLength').value;
-      const videoTitle = document.getElementById('videoTitle').value;
 
       // Extract the video ID from the URL
-      const videoId = videoUrl.split('?v=')[1];
+      const videoId = videoUrl.split('/')[3];
 
-      // Calculate the aspect ratio
-      const videoAspectRatio = videoWidth / videoHeight;
+      // Fetch the video information from the TED API
+      fetch(`https://www.ted.com/talks/${videoId}.json`)
+        .then(response => response.json())
+        .then(data => {
+          const video = data;
+          const videoWidth = 640;
+          const videoHeight = 360;
+          const videoDuration = video.duration;
+          const videoMinutes = Math.floor(videoDuration / 60);
+          const videoSeconds = videoDuration % 60;
+          const videoTitle = video.name;
+          const videoAspectRatio = videoWidth / videoHeight;
 
-      // Construct the embedding code
-      const embedCode = `
+          // Update the form fields
+          document.getElementById('videoLength').value = `${videoMinutes}m ${videoSeconds}s`;
+          document.getElementById('videoTitle').value = videoTitle;
+          document.getElementById('videoAspectRatio').value = videoAspectRatio.toFixed(2);
+
+          // Construct the embedding code
+          const embedCode = `
 <iframe
   width="${videoWidth}"
   height="${videoHeight}"
-  src="https://www.youtube.com/embed/${videoId}?start=${videoStartTime}&t=${videoLength}"
+  src="https://embed.ted.com/talks/${videoId}"
   title="${videoTitle}"
   frameborder="0"
   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
   allowfullscreen
   style="aspect-ratio: ${videoAspectRatio};"
 ></iframe>
+
+If video doesn't appear, follow this direct link:
+
+<a href="${videoUrl}" target="_blank">${videoTitle}</a> (${videoMinutes}m ${videoSeconds}s)
+
+Start the video to access more options in the video frame. To display the video captions, click on the <strong>gray speech bubble</strong> with three dots in the center and choose the language you want the captions to be displayed in. To expand the video, use the <strong>Full Screen</strong> icon in the bottom right-hand corner or use the direct link above to open the video on the TED website. To navigate the video using the transcript, click <strong>Interactive Transcript</strong>.
 `;
 
-      // Display the generated code
-      document.getElementById('embedCode').value = embedCode;
+          // Display the generated code
+          document.getElementById('embedCode').value = embedCode;
+        })
+        .catch(error => {
+          console.error('Error fetching video information:', error);
+          alert('Error fetching video information. Please check the TED Talk URL and try again.');
+        });
     }
   </script>
 </body>
