@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Video Embed Code Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    form {
+      max-width: 400px;
+      margin: 0 auto;
+      background-color: #f2f2f2;
+      padding: 20px;
+      border-radius: 5px;
+    }
+
+    input[type=text] {
+      width: 100%;
+      padding: 12px 20px;
+      margin: 8px 0;
+      display: inline-block;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 14px 20px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    #embedCode {
+      width: 100%;
+      height: 120px;
+      margin-top: 20px;
+      font-family: monospace;
+      font-size: 14px;
+      background-color: #f2f2f2;
+      padding: 10px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <form onsubmit="generateEmbedCode(); return false;">
+    <label for="videoUrl">Video URL:</label>
+    <input type="text" id="videoUrl" name="videoUrl" placeholder="Enter video URL" required>
+
+    <label for="videoWidth">Video Width:</label>
+    <input type="text" id="videoWidth" name="videoWidth" placeholder="Enter video width" required>
+
+    <label for="videoHeight">Video Height:</label>
+    <input type="text" id="videoHeight" name="videoHeight" placeholder="Enter video height" required>
+
+    <label for="videoStartTime">Start Time (seconds):</label>
+    <input type="text" id="videoStartTime" name="videoStartTime" placeholder="Enter start time" required>
+
+    <label for="videoLength">Length (seconds):</label>
+    <input type="text" id="videoLength" name="videoLength" placeholder="Enter video length" required>
+
+    <label for="videoTitle">Video Title:</label>
+    <input type="text" id="videoTitle" name="videoTitle" placeholder="Enter video title" required>
+
+    <button type="submit">Generate Embed Code</button>
+  </form>
+
+  <textarea id="embedCode" readonly></textarea>
+
+  <script>
+    function generateEmbedCode() {
+      const videoUrl = document.getElementById('videoUrl').value;
+      const videoWidth = document.getElementById('videoWidth').value;
+      const videoHeight = document.getElementById('videoHeight').value;
+      const videoStartTime = document.getElementById('videoStartTime').value;
+      const videoLength = document.getElementById('videoLength').value;
+      const videoTitle = document.getElementById('videoTitle').value;
+
+      // Extract the video ID from the URL
+      const videoId = videoUrl.split('?v=')[1];
+
+      // Calculate the aspect ratio
+      const videoAspectRatio = videoWidth / videoHeight;
+
+      // Construct the embedding code
+      const embedCode = `
+<iframe
+  width="${videoWidth}"
+  height="${videoHeight}"
+  src="https://www.youtube.com/embed/${videoId}?start=${videoStartTime}&t=${videoLength}"
+  title="${videoTitle}"
+  frameborder="0"
+  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+  allowfullscreen
+  style="aspect-ratio: ${videoAspectRatio};"
+></iframe>
+`;
+
+      // Display the generated code
+      document.getElementById('embedCode').value = embedCode;
+    }
+  </script>
+</body>
+</html>
